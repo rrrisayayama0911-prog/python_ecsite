@@ -55,9 +55,6 @@ def register_user(request:Request,email:str = Form(...)):
         #重要：ハンコを押して確定させる
         conn.commit()
         
-        #sqlに登録したメールアドレスをuserに代入
-        user =cur.fetchone()
-        
         #お片付け
         cur.close()
         conn.close()
