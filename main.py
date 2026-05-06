@@ -13,7 +13,7 @@ templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
 # メイン画面（ここからが②接続確認のメイン！）
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
-    # 1.ここにHTMLに送るための「データの箱」を作る
+    # 1.ここにHTMLに送るためのモックデータ(データの箱)を作る
     
     items = [
         {"name":"チョコレート","price":300}, # 辞書形式
@@ -30,7 +30,7 @@ def index(request: Request):
 
 #登録画面
 @app.get("/register")
-def registar_page(request:Request,error:str = None):#error: str = None の = None は、「もしURLに error が入ってなくても怒らないでね（空っぽでもいいよ）」という意味
+def register_page(request:Request,error:str = None):#error: str = None の = None は、「もしURLに error が入ってなくても怒らないでね（空っぽでもいいよ）」という意味
     return templates.TemplateResponse(
         request=request,
         name="register.html",
@@ -55,12 +55,15 @@ def register_user(request:Request,email:str = Form(...)):
         #重要：ハンコを押して確定させる
         conn.commit()
         
+        #sqlに登録したメールアドレスをuserに代入
+        user =cur.fetchone()
+        
         #お片付け
         cur.close()
         conn.close()
         
-        # 保存が終わったら、ログイン画面（/login）へ自動で飛ばす！
-        return RedirectResponse(url="/login",status_code=303)
+        return RedirectResponse(url=f"/login",status_code=303)
+       
     
     
     except Exception as e:
@@ -96,9 +99,37 @@ def show_login(request:Request):
 def login_check(request:Request,email:str = Form(...)):
     print(f"ログインを試みているアドレス：{email}")
     
-    #ここに「DBから探す処理」を書く予定
-    #今はとりあえず「ログインしました」の文字だけ返す
-    return {"message":f"{email}さん、ログイン処理を受け付けました(開発中)"}
+    #ここに「DBから探す処理」を書く
+    #DBに保存する
+    try:
+        #データベースに繋ぐ
+        conn =psycopg2.connect(**DB_CONFIG)
+        cur = conn.cursor()
+        
+        #ログインは「探す(SELECT)」のが仕事！
+        cur.execute("SELECT * FROM users WHERE email = %s",(email,))
+        
+        #sqlに登録したメールアドレスをuserに代入
+        user =cur.fetchone() # ← ここで「中身があるか None か」が決まる！
+        
+        #お片付け
+        cur.close()
+        conn.close()
+        
+        #判断結果によって表示するメッセージを変える
+        if user:
+            #データが見つかった場合(ログイン成功)
+            msg_ok = f"[成功]{email}さん、ようこそ"
+            return RedirectResponse(url=f"/login?ok={msg_ok}",status_code=303)
+        else:
+            #データが見つからない場合(ログイン失敗)
+            msg_ng = f"[エラー]{email}さんはまだ登録されていません。登録されてない場合は、会員登録お願いします。すでに会員登録されている場合はXXX-XXXX-XXXXまでご連絡お願いします。"
+            return RedirectResponse(url=f"/register?ng={msg_ng}",status_code=303)
+    except Exception as e:
+        print(f"エラー発生：{e}")
+        return {"message": "接続エラーが発生しました。"}
+    
+    
 
 
 # テスト用API
