@@ -121,7 +121,7 @@ def login_check(request:Request,email:str = Form(...)):
         else:
             #データが見つからない場合(ログイン失敗)
             msg_ng = f"[エラー]{email}さんはまだ登録されていません。登録されてない場合は、会員登録お願いします。すでに会員登録されている場合はXXX-XXXX-XXXXまでご連絡お願いします。"
-            return RedirectResponse(url=f"/register?ng={msg_ng}",status_code=303)
+            return RedirectResponse(url=f"/register?error={msg_ng}",status_code=303)
     except Exception as e:
         print(f"エラー発生：{e}")
         return {"message": "接続エラーが発生しました。"}
