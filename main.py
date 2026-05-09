@@ -87,10 +87,13 @@ DB_CONFIG = {
 
 # /loginというURLにアクセス（GET）が来たら実行される窓口
 @app.get("/login")
-def show_login(request:Request):
+def show_login(request:Request,error:str = None):
     #templatesフォルダにあるlogin.htmlをブラウザに返してあげる
-    return templates.TemplateResponse(request=request, name="login.html")
-
+    return templates.TemplateResponse(
+        request=request,
+        name="login.html",
+        context={"error":error}
+    )
 #ログインボタン(POST)が押された時に動く窓口
 @app.post("/login")
 def login_check(request:Request,email:str = Form(...)):
@@ -117,11 +120,11 @@ def login_check(request:Request,email:str = Form(...)):
         if user:
             #データが見つかった場合(ログイン成功)
             msg_ok = f"[成功]{email}さん、ようこそ"
-            return RedirectResponse(url=f"/login?ok={msg_ok}",status_code=303)
+            return RedirectResponse(url=f"/index?ok={msg_ok}",status_code=303)
         else:
             #データが見つからない場合(ログイン失敗)
-            msg_ng = f"[エラー]{email}さんはまだ登録されていません。登録されてない場合は、会員登録お願いします。すでに会員登録されている場合はXXX-XXXX-XXXXまでご連絡お願いします。"
-            return RedirectResponse(url=f"/register?error={msg_ng}",status_code=303)
+            error_msg = f"[エラー]{email}さんはまだ登録されていません。登録されてない場合は、会員登録お願いします。すでに会員登録されている場合はXXX-XXXX-XXXXまでご連絡お願いします。"
+            return RedirectResponse(url=f"/login?error={error_msg}",status_code=303)
     except Exception as e:
         print(f"エラー発生：{e}")
         return {"message": "接続エラーが発生しました。"}
