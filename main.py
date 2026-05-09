@@ -11,22 +11,29 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
 
 # メイン画面（ここからが②接続確認のメイン！）
-@app.get("/", response_class=HTMLResponse)
-def index(request: Request):
-    # 1.ここにHTMLに送るためのモックデータ(データの箱)を作る
+@app.get("/")
+def show_main(request: Request):
+    # 1.データベースに接続する
+    conn = psycopg2.connect(**DB_CONFIG)
+    cur = conn.cursor()
     
-    items = [
-        {"name":"チョコレート","price":300}, # 辞書形式
-        {"name":"バニラ","price":250},
-        {"name":"ストロベリー","price":320},
-        {"name":"抹茶","price":280}
-    ]
-    # 2. テンプレートエンジン(Jinja2)にデータを渡して出荷
-    return templates.TemplateResponse(
-        request=request,
-        name="index.html",
-        context={"items":items} #ここでデータをHTMLに流す。
-    )
+    #2.SQLを実行して、productsテーブルから全件取ってくる
+    cur.execute("SELECT id,name,price FROM products;")
+    products = cur.fetchall()#全てのデータをリストとして取得
+    
+    #3.
+    print("---DBから取得したデータの中身---")
+    print(products)
+    print(f"取得した件数：{len(products)}件")
+    print("------------------------------")
+    
+    #4.接続を閉じる
+    cur.close()
+    conn.close()
+    
+    # 一旦、確認用に文字だけ返します（明日はここをTemplateResponseで、htmlファイルにデータ渡すようにに変える）
+    return {"status":"ok","data":products}
+    
 
 #登録画面
 @app.get("/register")
