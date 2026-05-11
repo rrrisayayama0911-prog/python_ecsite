@@ -12,8 +12,8 @@
     <ul>
         {# 1. ループ処理：itemsの中身を1つずつ「item」という名前で取り出す#}
         {% for item in items %}
-            {# 2. 以下は予約席。Jinja2 (テンプレートエンジン)がPythonのデータをHTMLの「予約席」へ流し込む。変数の表示：item（辞書）の中から、特定のキー（nameやprice）を呼び出す#}
-            <li>{{item.name}}:{{item.price}}円</li>
+            {# 2. HTMLに届いた大きなバケツ items から、1匹ずつ魚を取り出して、それを item と名付けてお皿（<li>）に盛り付けます。item[0]はID、item[1]は商品名、item[2]は価格#}
+            <li>{{item[1]}}:{{item[2]}}円</li>
         {% endfor %}
     </ul>
 </body>

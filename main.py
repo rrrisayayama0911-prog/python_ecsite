@@ -19,7 +19,7 @@ def show_main(request: Request):
     
     #2.SQLを実行して、productsテーブルから全件取ってくる
     cur.execute("SELECT id,name,price FROM products;")
-    products = cur.fetchall()#全てのデータをリストとして取得
+    products = cur.fetchall()#バケツ「products」に全部入れる
     
     #3.
     print("---DBから取得したデータの中身---")
@@ -31,8 +31,11 @@ def show_main(request: Request):
     cur.close()
     conn.close()
     
-    # 一旦、確認用に文字だけ返します（明日はここをTemplateResponseで、htmlファイルにデータ渡すようにに変える）
-    return {"status":"ok","data":products}
+    return templates.TemplateResponse(
+        request=request,
+        name="index.html",
+        context={"items":products}#バケツの中身を「items」という名前でhtmlに渡す、受付窓口（TemplateResponse）を通る時に、公式な「荷札（items）」に貼り替えられるから
+    )
     
 
 #登録画面
@@ -103,7 +106,7 @@ def show_login(request:Request,error:str = None):
     )
 #ログインボタン(POST)が押された時に動く窓口
 @app.post("/login")
-def login_check(request:Request,email:str = Form(...)):
+def login_check(request:Request,email:str = Form(...),password:str = Form(...)):
     print(f"ログインを試みているアドレス：{email}")
     
     #ここに「DBから探す処理」を書く
@@ -114,7 +117,7 @@ def login_check(request:Request,email:str = Form(...)):
         cur = conn.cursor()
         
         #ログインは「探す(SELECT)」のが仕事！
-        cur.execute("SELECT * FROM users WHERE email = %s",(email,))
+        cur.execute("SELECT * FROM users WHERE email = %s AND password = %s",(email,password))
         
         #sqlに登録したメールアドレスをuserに代入
         user =cur.fetchone() # ← ここで「中身があるか None か」が決まる！
@@ -125,12 +128,12 @@ def login_check(request:Request,email:str = Form(...)):
         
         #判断結果によって表示するメッセージを変える
         if user:
-            #データが見つかった場合(ログイン成功)
+            #ログイン成功
             msg_ok = f"[成功]{email}さん、ようこそ"
-            return RedirectResponse(url=f"/index?ok={msg_ok}",status_code=303)
+            return RedirectResponse(url=f"/?ok={msg_ok}",status_code=303)
         else:
-            #データが見つからない場合(ログイン失敗)
-            error_msg = f"[エラー]{email}さんはまだ登録されていません。登録されてない場合は、会員登録お願いします。すでに会員登録されている場合はXXX-XXXX-XXXXまでご連絡お願いします。"
+            #メールアドレスかパスワードが違う場合(ログイン失敗)
+            error_msg = "[エラー]メールアドレスかパスワードが間違っています。登録されてない場合は、会員登録お願いします。メールアドレスまたはパスワードをお忘れの場合はXXX-XXXX-XXXXまでご連絡お願いします。"
             return RedirectResponse(url=f"/login?error={error_msg}",status_code=303)
     except Exception as e:
         print(f"エラー発生：{e}")
