@@ -7,10 +7,6 @@
 <body>
     <h1>ログイン</h1>
     <ul>ようこそ！</ul>
-    {% if error %}
-        <p style="color: red";>エラー:{{error}}</p>
-    {% endif %}
-
     <p>登録したメールアドレスを入力してください</p>
 
 
@@ -19,6 +15,11 @@
         <input type="password" name="password" placeholder="パスワード"required>
         <button type="submit">ログイン</button>
     </form>
+
+    {% if error %}
+        <p style="color: red";>エラー:{{error}}</p>
+    {% endif %}
+
 
     <p><a href="/register">登録画面へ進む</a></p>
     <p><a href="/">商品一覧に戻る</a></p>
