@@ -47,9 +47,9 @@ def register_page(request:Request,error:str = None):#error: str = None の = Non
         context={"error":error} #HTMLにエラー内容を渡す
     )
 
-#メールアドレスを受け取る
+#メールアドレスとパスワードを受け取る
 @app.post("/register") #データの送信(POST)を受け取る設定
-def register_user(request:Request,email:str = Form(...)):
+def register_user(request:Request,email:str = Form(...),password:str = Form(...)):
     #届いたメールアドレスを表示して、登録完了画面を出す
     print(f"届いたメールアドレス：{email}")#ターミナルに表示(テスト用)
     
@@ -59,8 +59,8 @@ def register_user(request:Request,email:str = Form(...)):
         conn =psycopg2.connect(**DB_CONFIG)
         cur = conn.cursor()
         
-        #SQlに実行する(usersテーブルのemail列に届いたアドレスを入れる)
-        cur.execute("INSERT INTO users (email) VALUES(%s)",(email,))
+        #SQlに実行する(usersテーブルのemail列に届いたアドレスを入れ、password列にパスワード入れる)
+        cur.execute("INSERT INTO users (email,password) VALUES(%s,%s)",(email,password))
         
         #重要：ハンコを押して確定させる
         conn.commit()
@@ -116,7 +116,7 @@ def login_check(request:Request,email:str = Form(...),password:str = Form(...)):
         conn =psycopg2.connect(**DB_CONFIG)
         cur = conn.cursor()
         
-        #ログインは「探す(SELECT)」のが仕事！
+        #ログインでメールアドレスとパスワードが一致することを確認
         cur.execute("SELECT * FROM users WHERE email = %s AND password = %s",(email,password))
         
         #sqlに登録したメールアドレスをuserに代入
