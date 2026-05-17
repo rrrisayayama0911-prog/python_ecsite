@@ -8,13 +8,33 @@
 <head>
     <meta charset="UTF-8">
     <title>商品一覧</title></head>
+
+
 <body> <h1>商品一覧</h1>
-    <ul>
-        {# 1. ループ処理：itemsの中身を1つずつ「item」という名前で取り出す#}
-        {% for item in items %}
-            {# 2. HTMLに届いた大きなバケツ items から、1匹ずつ魚を取り出して、それを item と名付けてお皿（<li>）に盛り付けます。item[0]はID、item[1]は商品名、item[2]は価格#}
-            <li>{{item[1]}}:{{item[2]}}円</li>
+    <form action="/" method="get" style="margin-bottom:20px;">
+        <input type=""text name="keyword"placeholder="商品名を入力(例：バニラ)"style="padding:5px;width250px;">
+        <button type="submit" style="padding:5px 10px;">検索</button>
+        <a href="/" style="margin-left:10px;text-decoration:none;color:#666;">クリア</a>
+    </form>
+
+       <div style="display: flex; flex-direction: column; gap: 15px;"> {% for item in items %}
+            {# 商品1つ分のボックス（無駄なタグを排除したスッキリ版） #}
+            <div style="border: 1px solid #ccc; padding: 5px; display: flex; align-items: center; width: 600px; background-color: #fff; box-sizing: border-box;">
+
+                {# 左側：画像 #}
+                <div style="width: 150px; height: 150px; flex-shrink: 0; margin-right: 30px;">
+                    <img src="{{ item[4] }}" alt="{{ item[1] }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;">
+                </div>
+
+                {# 右側：商品のテキスト情報 #}
+                <div style="font-size: 16px; line-height: 1.6; flex-grow: 1;">
+                    <h3 style="margin: 0 0 10px 0; font-size: 20px; color: #333;">{{ item[1] }}</h3>
+                    <p style="margin: 5px 0; color: #555;"><strong>価格：</strong>{{ item[2] }}円</p>
+                    <p style="margin: 5px 0; color: #555;"><strong>在庫：</strong>{{ item[3] }}個</p>
+                </div>
+
+            </div>
         {% endfor %}
-    </ul>
+    </div>
 </body>
 </html>

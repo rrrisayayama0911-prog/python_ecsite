@@ -3,8 +3,10 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse,RedirectResponse
 import os
 import psycopg2
+from fastapi.staticfiles import StaticFiles
 
 app = FastAPI()
+app.mount("/static",StaticFiles(directory="static"),name="static")
 
 # テンプレートの設定
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -12,16 +14,28 @@ templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
 
 # メイン画面（ここからが②接続確認のメイン！）
 @app.get("/")
-def show_main(request: Request):
+def show_main(request: Request,keyword:str=None):
     # 1.データベースに接続する
     conn = psycopg2.connect(**DB_CONFIG)
     cur = conn.cursor()
     
-    #2.SQLを実行して、productsテーブルから全件取ってくる
-    cur.execute("SELECT id,name,price FROM products;")
+    #2.検索文字があるかどうかで、実行するSQLを切り替える
+    if keyword:
+        #検索文字がある場合（部分一致：前後に％をくっつける）
+        print(f"検索されたキーワード：{keyword}")
+        sql="SELECT id,name,price,stock,image_path FROM products WHERE name LIKE %s;"
+        #例：「バニラ」→「%バニラ%」に変換してsqlに流し込む
+        cur.execute(sql,(f"%{keyword}%",))
+    
+    
+    else:
+        #検索文字がない場合(全件取得)
+        cur.execute("SELECT id,name,price,stock,image_path FROM products;")
+    
+    
     products = cur.fetchall()#バケツ「products」に全部入れる
     
-    #3.
+    #3.ログ出力
     print("---DBから取得したデータの中身---")
     print(products)
     print(f"取得した件数：{len(products)}件")
